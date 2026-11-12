@@ -32,7 +32,7 @@
   :focus-visible{outline:2px solid var(--orange);outline-offset:2px}
 
   /* nav */
-  .nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule)}
+  .nav{position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top,0px);background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule)}
   .nav-in{max-width:860px;margin:0 auto;padding:8px 18px;display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none}
   .nav-in::-webkit-scrollbar{display:none}
   .nav a{flex:none;text-decoration:none;color:var(--ink-2);font-size:13px;font-weight:700;padding:6px 12px;border-radius:99px;white-space:nowrap}
@@ -192,7 +192,7 @@
   .hide-ja .qja{display:none}
   @media (min-width:1000px){
     .rq-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
-    .rq-pass{display:block;position:sticky;top:64px;max-height:calc(100vh - 84px);overflow:auto;background:var(--soft);border-radius:14px;padding:14px 14px 4px;border:1px solid var(--rule)}
+    .rq-pass{display:block;position:sticky;top:calc(var(--navh,49px) + 15px);max-height:calc(100vh - 84px);overflow:auto;background:var(--soft);border-radius:14px;padding:14px 14px 4px;border:1px solid var(--rule)}
     .rq-ctx{display:none}
   }
   footer{margin-top:40px;color:var(--ink-3);font-size:12px;text-align:center}
@@ -230,7 +230,7 @@
   .mode{display:none}
   .mode.on{display:block}
   .btn.danger{border-color:var(--red);color:var(--red)}
-  .tbar{position:sticky;top:49px;z-index:10;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(6px);padding:10px 0;margin-bottom:6px;border-bottom:1px solid var(--rule)}
+  .tbar{position:sticky;top:var(--navh,49px);z-index:10;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(6px);padding:10px 0;margin-bottom:6px;border-bottom:1px solid var(--rule)}
   .tbar .score{font-size:13px;color:var(--ink-2)}
   .tbar .score b{font-family:var(--en);font-size:20px;color:var(--orange)}
   .track{flex:1 1 120px;min-width:100px;height:6px;border-radius:99px;background:var(--soft);border:1px solid var(--rule);overflow:hidden}
@@ -441,6 +441,10 @@
   .nav .mt{padding:6px 9px}
   .nav .mt .num{margin-right:4px}
 
+
+  /* タブ行：右端の「ダーク」を常に表示（タブが多いときはタブだけ横スクロール） */
+  .nav-in .theme{position:sticky;right:0;z-index:1;box-shadow:-10px 0 10px 2px color-mix(in srgb,var(--bg) 92%,transparent)}
+  @media (min-width:641px) and (max-width:1199px){ .nav .mt{padding:6px 9px} .nav .mt .num{margin-right:4px} .nav-in{gap:2px} }
 </style>
 </head>
 <body>
@@ -1204,5 +1208,10 @@ document.addEventListener("keydown", e => {
 })();
 </script>
 <script src="study.js" defer></script>
+<script>
+(function(){ const nav = document.querySelector(".nav"); if (!nav) return;
+  const fit = () => document.documentElement.style.setProperty("--navh", nav.offsetHeight + "px");
+  fit(); if (window.ResizeObserver) new ResizeObserver(fit).observe(nav); window.addEventListener("load", fit); })();
+</script>
 </body>
 </html>
