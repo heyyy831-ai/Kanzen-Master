@@ -445,6 +445,15 @@
   /* タブ行：右端の「ダーク」を常に表示（タブが多いときはタブだけ横スクロール） */
   .nav-in .theme{position:sticky;right:0;z-index:1;box-shadow:-10px 0 10px 2px color-mix(in srgb,var(--bg) 92%,transparent)}
   @media (min-width:641px) and (max-width:1199px){ .nav .mt{padding:6px 9px} .nav .mt .num{margin-right:4px} .nav-in{gap:2px} }
+  /* タブ行がはみ出すときは段階的に詰める（navFit） */
+  .nav-in.fit1{gap:0}
+  .nav-in.fit1 .mt{padding:6px 7px;letter-spacing:0}
+  .nav-in.fit1 .mt .num{margin-right:3px}
+  .nav-in.fit2 .mt{padding:6px 5px;font-size:12px}
+  .nav-in.fit2 .mt .num{width:16px;height:16px;font-size:10px;margin-right:2px}
+  .nav-in.fit2 .theme{padding:4px 9px}
+  .nav-in.fit3 .mt .num{display:none}
+  .nav-in.fit3 .mt{padding:6px 7px}
 </style>
 </head>
 <body>
@@ -1212,6 +1221,13 @@ document.addEventListener("keydown", e => {
 (function(){ const nav = document.querySelector(".nav"); if (!nav) return;
   const fit = () => document.documentElement.style.setProperty("--navh", nav.offsetHeight + "px");
   fit(); if (window.ResizeObserver) new ResizeObserver(fit).observe(nav); window.addEventListener("load", fit); })();
+</script>
+<script>
+(function(){ const r = document.querySelector(".nav-in"); if (!r) return;
+  const fit = () => { r.classList.remove("fit1","fit2","fit3");
+    for (const c of ["fit1","fit2","fit3"]) { if (r.scrollWidth <= r.clientWidth + 1) break; r.classList.add(c); } };
+  fit(); window.addEventListener("resize", fit); window.addEventListener("load", fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit); })();
 </script>
 </body>
 </html>
