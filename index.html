@@ -547,7 +547,8 @@
       <div class="grid">
         <label>自動モードの考える時間<select id="sWait"><option value="1">1秒</option><option value="2">2秒</option><option value="3">3秒</option><option value="4">4秒</option><option value="5" selected>5秒</option><option value="6">6秒</option><option value="7">7秒</option><option value="8">8秒</option><option value="9">9秒</option><option value="10">10秒</option><option value="11">11秒</option><option value="12">12秒</option><option value="13">13秒</option></select></label>
         <label>読み上げ速度<select id="sSpeed"><option value="0.5">0.5倍</option><option value="0.6">0.6倍</option><option value="0.7">0.7倍</option><option value="0.8">0.8倍</option><option value="0.9">0.9倍</option><option value="1.0" selected>1.0倍</option><option value="1.1">1.1倍</option><option value="1.2">1.2倍</option><option value="1.3">1.3倍</option><option value="1.4">1.4倍</option><option value="1.5">1.5倍</option></select></label>
-        <label>声（合成音声）<select id="sVoice"><option value="">（自動）</option></select></label>
+        <label>音声ソース<select id="sSrc"><option value="rec" selected>録音音声</option><option value="tts">合成音声</option></select></label>
+        <label>合成音声の声<select id="sVoice"><option value="">（自動）</option></select></label>
       </div>
     </details>
     <div class="card listcard">
@@ -1069,13 +1070,14 @@ function sAudGet(ki, q){
       })).catch(() => { delete SA_URL[key]; return null; });
   return SA_URL[key] = p;
 }
-function sAudPre(){ const qs = sItems(); [sIdx, sIdx + 1].forEach(j => { if (qs[j]) sAudGet(sKI, qs[j]); }); }
+function sAudPre(){ if ($("sSrc").value === "tts") return; const qs = sItems(); [sIdx, sIdx + 1].forEach(j => { if (qs[j]) sAudGet(sKI, qs[j]); }); }
 function sReveal(){
   const q = sItems()[sIdx]; if (!q) return Promise.resolve();
   sOpen = true; sDone[sKI + "-" + sIdx] = true;
   const li = document.querySelector('#sList li[data-i="' + sIdx + '"]'); if (li) li.classList.add("done");
   sShow();
   const rate = Number($("sSpeed").value), vo = $("sVoice").value;
+  if ($("sSrc").value === "tts") return AUD.play(null, q.en, rate, vo);
   return sAudGet(sKI, q).then(src => AUD.play(src, q.en, rate, vo));
 }
 async function sFlow(){
@@ -1096,6 +1098,10 @@ async function sFlow(){
   if (sRun === ac) sStop();
 }
 function sStop(){ if (sRun) { sRun.abort(); sRun = null; } timer($("sTmr"), 0); const b = $("sAuto"); b.textContent = "⏵ 自動モード"; b.classList.remove("stop"); }
+(function(){   // 音声ソース（録音／合成）を記憶
+  const el = $("sSrc"); try { const v = localStorage.getItem("km-ssrc"); if (v === "rec" || v === "tts") el.value = v; } catch (e) {}
+  el.onchange = () => { try { localStorage.setItem("km-ssrc", el.value); } catch (e) {} sAudPre(); };
+})();
 $("sShow").onclick = () => { AUD.unlock(); if (sRun) sStop(); sReveal(); };
 $("sPrev").onclick = () => { sStop(); AUD.stop(); if (sIdx > 0) sIdx--; sOpen = false; sShow(); };
 $("sNext").onclick = () => { sStop(); AUD.stop(); sIdx = sIdx >= sItems().length - 1 ? 0 : sIdx + 1; sOpen = false; sShow(); };
