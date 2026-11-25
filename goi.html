@@ -150,6 +150,29 @@ h1{font-size:clamp(22px,5vw,30px);line-height:1.35;margin:12px 0 4px;letter-spac
 .tq .acts{margin-left:2.6em}
 .mark{font-weight:700;font-size:14px;margin-left:6px}
 .mark.ok{color:var(--green)}.mark.ng{color:var(--orange)}
+.slist{margin:14px 0 8px}
+.slist .shd{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:0 0 10px}
+.slist .shd h2{margin:0;font-size:clamp(20px,4.6vw,26px)}
+.slist .sscore{font-weight:700;color:var(--green);font-size:15px}
+.slist .sscore small{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:6px}
+.slist .sback{margin-left:auto}
+.slist table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--rule);border-radius:12px;overflow:hidden;font-size:15px}
+.slist th{background:var(--soft);color:var(--ink-3);font-size:12.5px;font-weight:700;text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule);white-space:nowrap}
+.slist td{padding:5px 8px;border-top:1px solid var(--rule);vertical-align:baseline;line-height:1.35}
+.slist tbody tr{cursor:pointer}
+.slist tbody tr:hover td{background:var(--soft)}
+.slist td.no{font-style:italic;font-weight:700;color:var(--navy);white-space:nowrap;width:3.2em}
+.slist td.an{font-family:var(--en);font-size:16.5px;overflow-wrap:anywhere}
+.slist td.an i{font-style:normal;font-family:var(--jp);font-weight:700;font-size:12.5px;color:var(--ink-3);margin-right:4px}
+.slist td.an .na{font-family:var(--jp);font-size:13px;color:var(--ink-3)}
+.slist tr.ng td.you{color:var(--orange);text-decoration:line-through}
+.slist tr.ok td.you,.slist td.cor{color:var(--green)}
+.slist td.mk{text-align:center;font-weight:700;font-size:18px;width:2.6em}
+.slist tr.ok td.mk{color:var(--green)}
+.slist tr.ng td.mk,.slist tr.na td.mk{color:var(--orange)}
+.slist th.mk{text-align:center}
+.slist .sfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;color:var(--ink-3);font-size:12.5px}
+@media (max-width:520px){.slist table{font-size:14px}.slist td,.slist th{padding:5px 5px}.slist td.an{font-size:15px}}
 .expl{margin:10px 0 2px 2.6em;padding:10px 14px;background:var(--soft);border-radius:10px;border-left:4px solid var(--green);font-size:14px;line-height:1.75}
 .expl[hidden]{display:none}
 .expl .ans{font-weight:700;color:var(--green);margin-bottom:4px}
@@ -258,11 +281,12 @@ function renderTest(m,n){
         <div class="acts" style="margin:8px 0 0"><button class="btn say" type="button">🔊 例文を読み上げ</button></div>
       </div>
     </div>`;}).join('')}
-    <div class="bar" style="justify-content:center;margin-top:16px"><button class="btn primary" type="button" id="grade2">採点する</button></div>
+    <div class="bar" style="justify-content:center;margin-top:16px"><button class="btn primary" type="button" id="grade2">採点する</button><button class="btn" type="button" id="slistb">正誤一覧</button></div>
     <div class="wnav">
       ${n>1?`<button class="btn" type="button" data-n="${n-1}">◀ 第${n-1}回</button>`:'<span></span>'}
       ${n<T.sets.length?`<button class="btn" type="button" data-n="${n+1}">第${n+1}回 ▶</button>`:'<span></span>'}
-    </div>`;
+    </div>
+    <div class="slist" id="slist" style="display:none"></div>`;
   const cards=[...$('main').querySelectorAll('.tq')];
   const show=(k,on)=>{const c=cards[k], a=Q[k].idx.indexOf(Q[k].ans);
     c.querySelector('.expl').hidden=!on; const b=c.querySelector('.ex'); b.setAttribute('aria-pressed',on); b.textContent=on?'解説を隠す':'答えと解説';
@@ -284,6 +308,22 @@ function renderTest(m,n){
     $('allans').setAttribute('aria-pressed','true'); $('allans').textContent='答えと解説をすべて隠す';
     toTop(); };
   $('grade').onclick=grade; $('grade2').onclick=grade;
+  const slist=$('slist'), hideTest=on=>[...$('main').children].forEach(e=>{ if(e!==slist) e.style.display=on?'none':''; });
+  const closeList=to=>{ slist.style.display='none'; slist.innerHTML=''; hideTest(false);
+    const el=to||$('grade2'), go=()=>el.scrollIntoView({block:'center'}); setTimeout(go,150); };
+  $('slistb').onclick=()=>{ let ok=0, na=0;
+    const rows=Q.map((q,k)=>{ const a=q.idx.indexOf(q.ans), s=sel[k], r=s===a; if(r) ok++; if(s<0) na++;
+      return `<tr class="${s<0?'na':r?'ok':'ng'}" data-k="${k}"><td class="no">(${k+1})</td>`+
+        `<td class="an you" lang="en">${s<0?'<span class="na">未回答</span>':`<i>${s+1}</i>${esc(q.txt[s])}`}</td>`+
+        `<td class="an cor" lang="en"><i>${a+1}</i>${esc(q.txt[a])}</td><td class="mk">${r?'○':'×'}</td></tr>`; }).join('');
+    slist.innerHTML=`<div class="shd"><h2>第${n}回　正誤一覧</h2><span class="sscore">${ok} / ${Q.length} 問正解${na?`<small>（未回答 ${na} 問）</small>`:''}</span><button class="btn sback" type="button">問題に戻る</button></div>
+      <table><thead><tr><th>番号</th><th>あなたの選択</th><th>正解</th><th class="mk">採点</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="sfoot"><span>行をタップすると、その問題に戻ります。</span><button class="btn sback" type="button">問題に戻る</button></div>`;
+    hideTest(true); slist.style.display='';
+    slist.querySelectorAll('.sback').forEach(b=>b.onclick=()=>closeList());
+    slist.querySelectorAll('tbody tr').forEach(tr=>tr.onclick=()=>closeList(cards[+tr.dataset.k]));
+    let mt=EMBED?150:12; try{ const nv=EMBED&&parent.document.querySelector('.nav'); if(nv) mt=nv.offsetHeight+12; }catch(e){}
+    slist.style.scrollMarginTop=mt+'px'; const go=()=>slist.scrollIntoView({block:'start'}); setTimeout(go,150); };
   $('allans').onclick=e=>{const on=e.currentTarget.getAttribute('aria-pressed')!=='true';
     e.currentTarget.setAttribute('aria-pressed',on); e.currentTarget.textContent=on?'答えと解説をすべて隠す':'答えと解説をすべて表示';
     cards.forEach((_,k)=>show(k,on));};
